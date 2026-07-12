@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📡 Клієнт</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .status-badge.online { background: #4CAF50; color: white; }
+        .status-badge.offline { background: #f44336; color: white; }
+        .status-badge.waiting { background: #FF9800; color: white; }
+        
+        .config-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .config-box code {
+            word-break: break-all;
+            color: #667eea;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .stat-item .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-item .label {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s, background 0.2s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #4CAF50;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+        }
+        
+        .btn-danger:hover {
+            background: #da190b;
+        }
+        
+        .btn-warning {
+            background: #FF9800;
+        }
+        
+        .btn-warning:hover {
+            background: #e68900;
+        }
+        
+        .response-box {
+            background: #1e1e1e;
+            color: #4CAF50;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .response-box.error {
+            color: #ff6b6b;
+        }
+        
+        .log-area {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        
+        .log-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .log-item .time {
+            color: #888;
+            font-size: 11px;
+        }
+        
+        .log-item.success { color: #4CAF50; }
+        .log-item.error { color: #f44336; }
+        .log-item.info { color: #2196F3; }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        
+        .error-box {
+            background: #ffebee;
+            border: 2px solid #f44336;
+            padding: 15px;
+            border-radius: 8px;
+            color: #c62828;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📡 Клієнт</h1>
+        <div class="status-badge waiting" id="connectionStatus">⏳ Завантаження...</div>
+        
+        <!-- Інформація з config.json -->
+        <div class="config-box">
+            <h3>📄 config.json</h3>
+            <div id="configDisplay">
+                <p>⏳ Завантаження...</p>
+            </div>
+        </div>
+        
+        <!-- Помилка якщо немає config -->
+        <div id="errorContainer"></div>
+        
+        <!-- Статистика -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="value" id="sentCount">0</div>
+                <div class="label">Відправлено</div>
+            </div>
+            <div class="stat-item">
+                <div class="value" id="successCount">0</div>
+                <div class="label">Успішно</div>
+            </div>
+            <div class="stat-item">
+                <div class="value" id="errorCount">0</div>
+                <div class="label">Помилок</div>
+            </div>
+        </div>
+        
+        <!-- Кнопки -->
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="sendData()">📤 Відправити</button>
+            <button class="btn btn-warning" onclick="startAutoSend()">🔄 Авто-відправка</button>
+            <button class="btn btn-danger" onclick="stopAutoSend()">⏹️ Зупинити</button>
+            <button class="btn" onclick="loadConfig()">🔄 Перечитати config.json</button>
+        </div>
+        
+        <!-- Відповідь -->
+        <h3>📥 Відповідь сервера</h3>
+        <div id="response" class="response-box">Очікування запиту...</div>
+        
+        <!-- Логи -->
+        <h3>📋 Лог подій</h3>
+        <div id="logArea" class="log-area">
+            <div class="log-item info">
+                <span class="time">[${new Date().toLocaleTimeString()}]</span> 
+                Клієнт готовий до роботи
+            </div>
+        </div>
+        
+        <div class="btn-group" style="margin-top: 15px;">
+            <button class="btn" onclick="clearLogs()">🗑️ Очистити лог</button>
+            <button class="btn" onclick="clearStats()">📊 Скинути статистику</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // ЗМІННІ
+        // ============================================
+        let autoSendInterval = null;
+        let sentCount = 0;
+        let successCount = 0;
+        let errorCount = 0;
+        let config = null;
+        let configLoaded = false;
+        
+        // ============================================
+        // ЗАВАНТАЖЕННЯ config.json
+        // ============================================
+        async function loadConfig() {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.innerHTML = '';
+            
+            try {
+                // Додаємо timestamp щоб не кешувати
+                const response = await fetch('config.json?_=' + Date.now());
+                
+                if (!response.ok) {
+                    throw new Error(`Файл config.json не знайдено! (HTTP ${response.status})`);
+                }
+                
+                config = await response.json();
+                
+                // Валідація
+                if (!config.serverUrl) {
+                    throw new Error('В config.json відсутнє поле "serverUrl"');
+                }
+                
+                configLoaded = true;
+                
+                // Показуємо конфіг на сторінці
+                document.getElementById('configDisplay').innerHTML = `
+                    <p><strong>📡 Сервер:</strong> <code>${config.serverUrl}</code></p>
+                    <p><strong>🆔 Клієнт:</strong> ${config.clientId || 'Не вказано'}</p>
+                    <p><strong>📝 Повідомлення:</strong> ${config.message || 'Не вказано'}</p>
+                    <p><strong>⏱️ Інтервал:</strong> ${config.interval || 5} сек</p>
+                `;
+                
+                document.getElementById('connectionStatus').textContent = '✅ config.json завантажено';
+                document.getElementById('connectionStatus').className = 'status-badge online';
+                
+                addLog('✅ config.json завантажено успішно', 'success');
+                
+                // Перевіряємо підключення
+                checkConnection();
+                
+                // Якщо autoStart true - запускаємо автоматично
+                if (config.autoStart === true) {
+                    addLog('🔄 Автозапуск: так', 'info');
+                    setTimeout(startAutoSend, 2000);
+                }
+                
+            } catch (error) {
+                configLoaded = false;
+                document.getElementById('configDisplay').innerHTML = `
+                    <p style="color: #f44336;">❌ ${error.message}</p>
+                `;
+                
+                document.getElementById('connectionStatus').textContent = '❌ Помилка config.json';
+                document.getElementById('connectionStatus').className = 'status-badge offline';
+                
+                // Показуємо інструкцію
+                errorContainer.innerHTML = `
+                    <div class="error-box">
+                        <strong>⚠️ Створіть файл config.json</strong>
+                        <p style="margin-top: 10px; font-size: 14px;">
+                            Створіть файл <strong>config.json</strong> в одній папці з <strong>client.html</strong>
+                        </p>
+                        <pre style="background: #fff; padding: 10px; border-radius: 4px; margin-top: 10px; font-size: 12px;">
+{
+  "serverUrl": "https://твій-сервер.ім'я.repl.co",
+  "clientId": "my-client-001",
+  "message": "Привіт від клієнта!",
+  "interval": 5,
+  "autoStart": false
+}</pre>
+                    </div>
+                `;
+                
+                addLog(`❌ ${error.message}`, 'error');
+            }
+        }
+        
+        // ============================================
+        // ПЕРЕВІРКА ПІДКЛЮЧЕННЯ
+        // ============================================
+        async function checkConnection() {
+            if (!config || !config.serverUrl) return;
+            
+            try {
+                const serverUrl = config.serverUrl.replace(/\/$/, '');
+                const response = await fetch(`${serverUrl}/api/status`);
+                if (response.ok) {
+                    document.getElementById('connectionStatus').textContent = '✅ Підключено до сервера';
+                    document.getElementById('connectionStatus').className = 'status-badge online';
+                }
+            } catch (error) {
+                document.getElementById('connectionStatus').textContent = '❌ Немає з\'єднання з сервером';
+                document.getElementById('connectionStatus').className = 'status-badge offline';
+            }
+        }
+        
+        // ============================================
+        // НАДСИЛАННЯ ДАНИХ
+        // ============================================
+        async function sendData() {
+            if (!configLoaded || !config) {
+                addLog('❌ Спочатку завантажте config.json!', 'error');
+                return;
+            }
+            
+            const serverUrl = config.serverUrl.replace(/\/$/, '');
+            const clientId = config.clientId || 'client-' + Date.now();
+            const message = config.message || 'Привіт від клієнта!';
+            
+            const data = {
+                clientId: clientId,
+                message: message,
+                timestamp: new Date().toISOString()
+            };
+            
+            const responseDiv = document.getElementById('response');
+            responseDiv.textContent = '⏳ Надсилання...';
+            responseDiv.className = 'response-box';
+            
+            addLog(`📤 Надсилаю: ${message} (${clientId})`, 'info');
+            
+            try {
+                sentCount++;
+                updateStats();
+                
+                const response = await fetch(`${serverUrl}/api/data`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                responseDiv.textContent = JSON.stringify(result, null, 2);
+                responseDiv.className = 'response-box';
+                
+                if (result.success) {
+                    successCount++;
+                    addLog(`✅ Успішно!`, 'success');
+                } else {
+                    errorCount++;
+                    addLog(`⚠️ Помилка: ${result.message || 'Невідома помилка'}`, 'error');
+                }
+                
+                updateStats();
+                
+            } catch (error) {
+                errorCount++;
+                updateStats();
+                
+                responseDiv.textContent = `❌ Помилка: ${error.message}`;
+                responseDiv.className = 'response-box error';
+                
+                addLog(`❌ ${error.message}`, 'error');
+                document.getElementById('connectionStatus').textContent = '❌ Помилка з\'єднання';
+                document.getElementById('connectionStatus').className = 'status-badge offline';
+            }
+        }
+        
+        // ============================================
+        // АВТОМАТИЧНА ВІДПРАВКА
+        // ============================================
+        function startAutoSend() {
+            if (!configLoaded || !config) {
+                addLog('❌ Спочатку завантажте config.json!', 'error');
+                return;
+            }
+            
+            if (autoSendInterval) {
+                addLog('⚠️ Авто-відправка вже запущена', 'info');
+                return;
+            }
+            
+            const interval = config.interval || 5;
+            
+            if (interval < 1) {
+                addLog('❌ Невірний інтервал в config.json', 'error');
+                return;
+            }
+            
+            addLog(`🔄 Запущено авто-відправку (кожні ${interval} сек)`, 'info');
+            
+            sendData();
+            autoSendInterval = setInterval(sendData, interval * 1000);
+        }
+        
+        function stopAutoSend() {
+            if (autoSendInterval) {
+                clearInterval(autoSendInterval);
+                autoSendInterval = null;
+                addLog('⏹️ Авто-відправку зупинено', 'info');
+            } else {
+                addLog('ℹ️ Авто-відправка не запущена', 'info');
+            }
+        }
+        
+        // ============================================
+        // СТАТИСТИКА
+        // ============================================
+        function updateStats() {
+            document.getElementById('sentCount').textContent = sentCount;
+            document.getElementById('successCount').textContent = successCount;
+            document.getElementById('errorCount').textContent = errorCount;
+        }
+        
+        function clearStats() {
+            sentCount = 0;
+            successCount = 0;
+            errorCount = 0;
+            updateStats();
+            addLog('📊 Статистику скинуто', 'info');
+        }
+        
+        // ============================================
+        // ЛОГІНГ
+        // ============================================
+        function addLog(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const time = new Date().toLocaleTimeString();
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${type}`;
+            logItem.innerHTML = `<span class="time">[${time}]</span> ${message}`;
+            logArea.appendChild(logItem);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+        
+        function clearLogs() {
+            const logArea = document.getElementById('logArea');
+            logArea.innerHTML = '';
+            addLog('🗑️ Лог очищено', 'info');
+        }
+        
+        // ============================================
+        // ІНІЦІАЛІЗАЦІЯ
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            addLog('🚀 Клієнт завантажено', 'info');
+            loadConfig();
+            
+            // Перевіряємо підключення кожні 10 секунд
+            setInterval(() => {
+                if (configLoaded) checkConnection();
+            }, 10000);
+        });
+    </script>
+</body>
+</html> 
