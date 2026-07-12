@@ -1,0 +1,7 @@
+{
+  "serverUrl": "https://твій-сервер.ім'я.repl.co",
+  "clientId": "твій-client-id",
+  "message": "твоє-повідомлення",
+  "interval": 5,
+  "autoStart": false
+}
