@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📡 Клієнт</title>
+    <title>🎮 Клікер</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -22,18 +23,29 @@
         }
         
         .container {
-            background: white;
-            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
             padding: 40px;
-            max-width: 700px;
+            max-width: 500px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
         }
         
         h1 {
-            color: #333;
-            margin-bottom: 20px;
+            color: #fff;
+            text-align: center;
             font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .subtitle {
+            color: #8892b0;
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 25px;
         }
         
         .status-badge {
@@ -41,208 +53,335 @@
             padding: 5px 15px;
             border-radius: 20px;
             font-weight: bold;
-            margin-bottom: 20px;
+            font-size: 12px;
+            margin-bottom: 15px;
         }
         
         .status-badge.online { background: #4CAF50; color: white; }
         .status-badge.offline { background: #f44336; color: white; }
         .status-badge.waiting { background: #FF9800; color: white; }
         
-        .config-box {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
+        .click-area {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+            border: 2px solid rgba(255,255,255,0.1);
+            margin: 10px 0;
+            position: relative;
+            overflow: hidden;
         }
         
-        .config-box code {
-            word-break: break-all;
-            color: #667eea;
+        .click-area:active {
+            transform: scale(0.97);
+        }
+        
+        .click-area:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+        
+        .click-area img {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            pointer-events: none;
+            filter: drop-shadow(0 0 30px rgba(102, 126, 234, 0.3));
+            transition: transform 0.1s;
+        }
+        
+        .click-area:active img {
+            transform: scale(0.9);
+        }
+        
+        .click-count {
+            font-size: 64px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
+            margin: 10px 0;
+        }
+        
+        .click-label {
+            color: #8892b0;
+            font-size: 14px;
         }
         
         .stats {
             display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin: 15px 0;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center;
         }
         
         .stat-item {
-            background: #f8f9fa;
-            padding: 10px 20px;
-            border-radius: 8px;
-            flex: 1;
-            min-width: 80px;
+            background: rgba(255,255,255,0.05);
+            padding: 12px 20px;
+            border-radius: 12px;
             text-align: center;
+            flex: 1;
+            border: 1px solid rgba(255,255,255,0.05);
         }
         
         .stat-item .value {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
-            color: #667eea;
+            color: #fff;
         }
         
         .stat-item .label {
-            font-size: 12px;
-            color: #888;
+            font-size: 11px;
+            color: #8892b0;
+        }
+        
+        .stat-item .value.green { color: #4CAF50; }
+        .stat-item .value.orange { color: #FF9800; }
+        .stat-item .value.red { color: #f44336; }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 15px 0;
         }
         
         .btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 10px 22px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: transform 0.2s, background 0.2s;
-            margin: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 100px;
         }
         
         .btn:hover {
-            background: #5a67d8;
+            background: rgba(255,255,255,0.15);
             transform: translateY(-2px);
         }
         
         .btn-success {
-            background: #4CAF50;
+            background: rgba(76, 175, 80, 0.3);
+            border-color: #4CAF50;
         }
         
         .btn-success:hover {
-            background: #45a049;
-        }
-        
-        .btn-danger {
-            background: #f44336;
-        }
-        
-        .btn-danger:hover {
-            background: #da190b;
+            background: rgba(76, 175, 80, 0.5);
         }
         
         .btn-warning {
-            background: #FF9800;
+            background: rgba(255, 152, 0, 0.3);
+            border-color: #FF9800;
         }
         
         .btn-warning:hover {
-            background: #e68900;
+            background: rgba(255, 152, 0, 0.5);
+        }
+        
+        .btn-danger {
+            background: rgba(244, 67, 54, 0.3);
+            border-color: #f44336;
+        }
+        
+        .btn-danger:hover {
+            background: rgba(244, 67, 54, 0.5);
+        }
+        
+        .btn-secondary {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(102, 126, 234, 0.5);
         }
         
         .response-box {
-            background: #1e1e1e;
+            background: rgba(0,0,0,0.3);
             color: #4CAF50;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 10px 0;
             font-family: 'Courier New', monospace;
-            font-size: 13px;
-            max-height: 200px;
+            font-size: 12px;
+            max-height: 120px;
             overflow-y: auto;
             white-space: pre-wrap;
             word-break: break-all;
+            border: 1px solid rgba(255,255,255,0.05);
         }
         
         .response-box.error {
             color: #ff6b6b;
         }
         
+        .response-box.info {
+            color: #64b5f6;
+        }
+        
         .log-area {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            max-height: 200px;
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 12px;
+            max-height: 120px;
             overflow-y: auto;
-            font-size: 13px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-top: 10px;
         }
         
         .log-item {
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            color: #8892b0;
         }
         
         .log-item .time {
-            color: #888;
-            font-size: 11px;
+            color: #4a5568;
+            font-size: 10px;
         }
         
         .log-item.success { color: #4CAF50; }
         .log-item.error { color: #f44336; }
-        .log-item.info { color: #2196F3; }
+        .log-item.info { color: #64b5f6; }
         
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+        .config-box {
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 12px;
             margin: 10px 0;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .config-box p {
+            color: #8892b0;
+            font-size: 12px;
+            margin: 3px 0;
+        }
+        
+        .config-box code {
+            color: #667eea;
+            word-break: break-all;
         }
         
         .error-box {
-            background: #ffebee;
-            border: 2px solid #f44336;
+            background: rgba(244, 67, 54, 0.15);
+            border: 1px solid #f44336;
             padding: 15px;
-            border-radius: 8px;
-            color: #c62828;
+            border-radius: 12px;
+            color: #ff6b6b;
             margin: 10px 0;
+            font-size: 13px;
+        }
+        
+        .error-box pre {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 8px;
+            font-size: 11px;
+            color: #ccc;
+            overflow-x: auto;
+        }
+
+        .click-effect {
+            position: absolute;
+            pointer-events: none;
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            animation: floatUp 0.8s ease-out forwards;
+            z-index: 10;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+        }
+
+        /* Стилізація скролу */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📡 Клієнт</h1>
-        <div class="status-badge waiting" id="connectionStatus">⏳ Завантаження...</div>
+        <h1>🎮 Клікер</h1>
+        <p class="subtitle">Клацай по картинці, щоб збирати бали</p>
         
-        <!-- Інформація з config.json -->
-        <div class="config-box">
-            <h3>📄 config.json</h3>
-            <div id="configDisplay">
-                <p>⏳ Завантаження...</p>
-            </div>
+        <div style="text-align: center;">
+            <span class="status-badge waiting" id="connectionStatus">⏳ Завантаження...</span>
         </div>
         
-        <!-- Помилка якщо немає config -->
+        <!-- Конфіг -->
+        <div class="config-box" id="configBox">
+            <p>📡 Сервер: <code id="configServerUrl">--</code></p>
+            <p>🆔 Клієнт: <span id="configClientId">--</span></p>
+        </div>
+        
         <div id="errorContainer"></div>
+        
+        <!-- Клікер -->
+        <div class="click-area" id="clickArea" onclick="handleClick()">
+            <img src="nita_special_pin.png" alt="Nita" id="clickImage">
+            <div class="click-count" id="clickCount">0</div>
+            <div class="click-label">👆 Клацни по картинці</div>
+        </div>
         
         <!-- Статистика -->
         <div class="stats">
             <div class="stat-item">
-                <div class="value" id="sentCount">0</div>
+                <div class="value green" id="sentCount">0</div>
                 <div class="label">Відправлено</div>
             </div>
             <div class="stat-item">
-                <div class="value" id="successCount">0</div>
+                <div class="value orange" id="successCount">0</div>
                 <div class="label">Успішно</div>
             </div>
             <div class="stat-item">
-                <div class="value" id="errorCount">0</div>
+                <div class="value red" id="errorCount">0</div>
                 <div class="label">Помилок</div>
             </div>
         </div>
         
         <!-- Кнопки -->
         <div class="btn-group">
-            <button class="btn btn-success" onclick="sendData()">📤 Відправити</button>
+            <button class="btn btn-success" onclick="sendClick()">📤 Відправити клік</button>
             <button class="btn btn-warning" onclick="startAutoSend()">🔄 Авто-відправка</button>
             <button class="btn btn-danger" onclick="stopAutoSend()">⏹️ Зупинити</button>
-            <button class="btn" onclick="loadConfig()">🔄 Перечитати config.json</button>
+            <button class="btn btn-secondary" onclick="loadConfig()">🔄 Перечитати config</button>
         </div>
         
         <!-- Відповідь -->
-        <h3>📥 Відповідь сервера</h3>
-        <div id="response" class="response-box">Очікування запиту...</div>
+        <div id="response" class="response-box info">⏳ Очікування...</div>
         
         <!-- Логи -->
-        <h3>📋 Лог подій</h3>
-        <div id="logArea" class="log-area">
+        <div class="log-area" id="logArea">
             <div class="log-item info">
                 <span class="time">[${new Date().toLocaleTimeString()}]</span> 
-                Клієнт готовий до роботи
+                🚀 Клікер готовий!
             </div>
         </div>
         
-        <div class="btn-group" style="margin-top: 15px;">
-            <button class="btn" onclick="clearLogs()">🗑️ Очистити лог</button>
-            <button class="btn" onclick="clearStats()">📊 Скинути статистику</button>
+        <div class="btn-group" style="margin-top: 12px;">
+            <button class="btn" onclick="clearLogs()" style="flex: 0.5;">🗑️ Лог</button>
+            <button class="btn" onclick="clearStats()" style="flex: 0.5;">📊 Скинути</button>
+            <button class="btn btn-danger" onclick="resetClicks()" style="flex: 0.7;">🔄 Скинути кліки</button>
         </div>
     </div>
 
@@ -254,8 +393,10 @@
         let sentCount = 0;
         let successCount = 0;
         let errorCount = 0;
+        let clickCount = 0;
         let config = null;
         let configLoaded = false;
+        let isSending = false;
         
         // ============================================
         // ЗАВАНТАЖЕННЯ config.json
@@ -265,7 +406,6 @@
             errorContainer.innerHTML = '';
             
             try {
-                // Додаємо timestamp щоб не кешувати
                 const response = await fetch('config.json?_=' + Date.now());
                 
                 if (!response.ok) {
@@ -274,30 +414,22 @@
                 
                 config = await response.json();
                 
-                // Валідація
                 if (!config.serverUrl) {
                     throw new Error('В config.json відсутнє поле "serverUrl"');
                 }
                 
                 configLoaded = true;
                 
-                // Показуємо конфіг на сторінці
-                document.getElementById('configDisplay').innerHTML = `
-                    <p><strong>📡 Сервер:</strong> <code>${config.serverUrl}</code></p>
-                    <p><strong>🆔 Клієнт:</strong> ${config.clientId || 'Не вказано'}</p>
-                    <p><strong>📝 Повідомлення:</strong> ${config.message || 'Не вказано'}</p>
-                    <p><strong>⏱️ Інтервал:</strong> ${config.interval || 5} сек</p>
-                `;
+                document.getElementById('configServerUrl').textContent = config.serverUrl;
+                document.getElementById('configClientId').textContent = config.clientId || 'Не вказано';
                 
                 document.getElementById('connectionStatus').textContent = '✅ config.json завантажено';
                 document.getElementById('connectionStatus').className = 'status-badge online';
                 
                 addLog('✅ config.json завантажено успішно', 'success');
                 
-                // Перевіряємо підключення
                 checkConnection();
                 
-                // Якщо autoStart true - запускаємо автоматично
                 if (config.autoStart === true) {
                     addLog('🔄 Автозапуск: так', 'info');
                     setTimeout(startAutoSend, 2000);
@@ -305,21 +437,19 @@
                 
             } catch (error) {
                 configLoaded = false;
-                document.getElementById('configDisplay').innerHTML = `
-                    <p style="color: #f44336;">❌ ${error.message}</p>
-                `;
+                document.getElementById('configServerUrl').textContent = '--';
+                document.getElementById('configClientId').textContent = '--';
                 
                 document.getElementById('connectionStatus').textContent = '❌ Помилка config.json';
                 document.getElementById('connectionStatus').className = 'status-badge offline';
                 
-                // Показуємо інструкцію
                 errorContainer.innerHTML = `
                     <div class="error-box">
                         <strong>⚠️ Створіть файл config.json</strong>
-                        <p style="margin-top: 10px; font-size: 14px;">
+                        <p style="margin-top: 8px; font-size: 13px;">
                             Створіть файл <strong>config.json</strong> в одній папці з <strong>client.html</strong>
                         </p>
-                        <pre style="background: #fff; padding: 10px; border-radius: 4px; margin-top: 10px; font-size: 12px;">
+                        <pre>
 {
   "serverUrl": "https://твій-сервер.ім'я.repl.co",
   "clientId": "my-client-001",
@@ -354,29 +484,60 @@
         }
         
         // ============================================
-        // НАДСИЛАННЯ ДАНИХ
+        // ОБРОБКА КЛІКУ
         // ============================================
-        async function sendData() {
+        function handleClick() {
+            clickCount++;
+            document.getElementById('clickCount').textContent = clickCount;
+            
+            // Ефект вилітання "+1"
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.textContent = '+1';
+            const rect = document.getElementById('clickArea').getBoundingClientRect();
+            effect.style.left = (Math.random() * 100) + '%';
+            effect.style.top = (Math.random() * 80 + 10) + '%';
+            document.getElementById('clickArea').appendChild(effect);
+            setTimeout(() => effect.remove(), 800);
+        }
+        
+        // ============================================
+        // ВІДПРАВКА КЛІКІВ НА СЕРВЕР
+        // ============================================
+        async function sendClick() {
             if (!configLoaded || !config) {
                 addLog('❌ Спочатку завантажте config.json!', 'error');
                 return;
             }
             
+            if (isSending) {
+                addLog('⏳ Вже надсилається...', 'info');
+                return;
+            }
+            
+            if (clickCount === 0) {
+                addLog('⚠️ Немає кліків для відправки! Зроби клік!', 'info');
+                return;
+            }
+            
+            isSending = true;
+            
             const serverUrl = config.serverUrl.replace(/\/$/, '');
             const clientId = config.clientId || 'client-' + Date.now();
-            const message = config.message || 'Привіт від клієнта!';
+            const message = config.message || `Клік! Всього: ${clickCount}`;
             
             const data = {
                 clientId: clientId,
                 message: message,
+                clicks: clickCount,
                 timestamp: new Date().toISOString()
             };
             
             const responseDiv = document.getElementById('response');
             responseDiv.textContent = '⏳ Надсилання...';
-            responseDiv.className = 'response-box';
+            responseDiv.className = 'response-box info';
             
-            addLog(`📤 Надсилаю: ${message} (${clientId})`, 'info');
+            addLog(`📤 Відправляю ${clickCount} кліків (${clientId})`, 'info');
             
             try {
                 sentCount++;
@@ -397,7 +558,9 @@
                 
                 if (result.success) {
                     successCount++;
-                    addLog(`✅ Успішно!`, 'success');
+                    addLog(`✅ ${clickCount} кліків відправлено!`, 'success');
+                    clickCount = 0;
+                    document.getElementById('clickCount').textContent = '0';
                 } else {
                     errorCount++;
                     addLog(`⚠️ Помилка: ${result.message || 'Невідома помилка'}`, 'error');
@@ -416,6 +579,8 @@
                 document.getElementById('connectionStatus').textContent = '❌ Помилка з\'єднання';
                 document.getElementById('connectionStatus').className = 'status-badge offline';
             }
+            
+            isSending = false;
         }
         
         // ============================================
@@ -441,8 +606,7 @@
             
             addLog(`🔄 Запущено авто-відправку (кожні ${interval} сек)`, 'info');
             
-            sendData();
-            autoSendInterval = setInterval(sendData, interval * 1000);
+            autoSendInterval = setInterval(sendClick, interval * 1000);
         }
         
         function stopAutoSend() {
@@ -472,6 +636,12 @@
             addLog('📊 Статистику скинуто', 'info');
         }
         
+        function resetClicks() {
+            clickCount = 0;
+            document.getElementById('clickCount').textContent = '0';
+            addLog('🔄 Кліки скинуто', 'info');
+        }
+        
         // ============================================
         // ЛОГІНГ
         // ============================================
@@ -483,6 +653,11 @@
             logItem.innerHTML = `<span class="time">[${time}]</span> ${message}`;
             logArea.appendChild(logItem);
             logArea.scrollTop = logArea.scrollHeight;
+            
+            // Обмежуємо кількість логів
+            while (logArea.children.length > 50) {
+                logArea.removeChild(logArea.firstChild);
+            }
         }
         
         function clearLogs() {
@@ -492,17 +667,31 @@
         }
         
         // ============================================
+        // КЛАВІШІ
+        // ============================================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClick();
+            }
+            if (e.key === 's' || e.key === 'S') {
+                sendClick();
+            }
+        });
+        
+        // ============================================
         // ІНІЦІАЛІЗАЦІЯ
         // ============================================
         document.addEventListener('DOMContentLoaded', () => {
-            addLog('🚀 Клієнт завантажено', 'info');
+            addLog('🚀 Клікер завантажено', 'info');
+            addLog('💡 Клацни по картинці або натисни Enter/Space', 'info');
+            addLog('💡 Натисни S для відправки кліків', 'info');
             loadConfig();
             
-            // Перевіряємо підключення кожні 10 секунд
             setInterval(() => {
                 if (configLoaded) checkConnection();
             }, 10000);
         });
     </script>
 </body>
-</html> 
+</html>
